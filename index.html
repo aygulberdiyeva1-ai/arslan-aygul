@@ -1223,19 +1223,9 @@
     </div>
     <div class="sparkles" id="sparkles" aria-hidden="true"></div>
 
-    <!-- ЗАМОК: секретное слово -->
-    <div class="intro-overlay lock-overlay" id="lock">
-        <form class="intro-card lock-card" id="lockForm" autocomplete="off" onsubmit="return tryUnlock(event)">
-            <div class="lock-ico"><svg class="i i-diamond" aria-hidden="true"><use href="#i-diamond"/></svg></div>
-            <input id="lockInput" type="text" placeholder="секретное слово" aria-label="секретное слово"
-                   autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
-            <button class="btn" type="submit">Войти</button>
-            <p class="lock-error" id="lockError" aria-live="polite"></p>
-        </form>
-    </div>
 
     <!-- ИНТРО 1 -->
-    <div class="intro-overlay is-hidden" id="intro1">
+    <div class="intro-overlay" id="intro1">
         <div class="intro-card">
             <div class="monogram">my heart</div>
             <h1 class="script">To the love of my life</h1>
@@ -1819,53 +1809,6 @@
             });
         })();
 
-        /* ============ ЗАМОК: секретное слово ============ */
-        /* лёгкая защита от случайных гостей: слово не лежит в коде открытым текстом */
-        const cyrb53 = (str, seed = 0) => {
-            let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
-            for (let i = 0, ch; i < str.length; i++) {
-                ch = str.charCodeAt(i);
-                h1 = Math.imul(h1 ^ ch, 2654435761);
-                h2 = Math.imul(h2 ^ ch, 1597334677);
-            }
-            h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
-            h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
-            return 4294967296 * (2097151 & h2) + (h1 >>> 0);
-        };
-        const LOCK_HASH = 881790699420620;
-
-        function showIntro1() {
-            document.getElementById('lock').classList.add('is-hidden');
-            document.getElementById('intro1').classList.remove('is-hidden');
-        }
-
-        function tryUnlock(event) {
-            if (event) event.preventDefault();
-            const input = document.getElementById('lockInput');
-            const word = input.value.trim().toLowerCase();
-
-            if (cyrb53(word, 17) === LOCK_HASH) {
-                try { sessionStorage.setItem('aa_open', '1'); } catch (e) {}
-                fx({ clientX: window.innerWidth / 2, clientY: window.innerHeight / 2 });
-                showIntro1();
-            } else {
-                const card = document.getElementById('lockForm');
-                document.getElementById('lockError').textContent = 'Попробуй ещё раз';
-                card.classList.remove('shake');
-                void card.offsetWidth;
-                card.classList.add('shake');
-                input.value = '';
-                input.focus();
-            }
-            return false;
-        }
-
-        (function initLock() {
-            let ok = false;
-            try { ok = sessionStorage.getItem('aa_open') === '1'; } catch (e) {}
-            if (ok) { showIntro1(); return; }
-            setTimeout(() => { const i = document.getElementById('lockInput'); if (i) i.focus(); }, 400);
-        })();
 
         /* ============ УСТАНОВКА КАК ПРИЛОЖЕНИЕ ============ */
         if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
