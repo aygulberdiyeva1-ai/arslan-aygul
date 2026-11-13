@@ -937,6 +937,12 @@
     let seen = {};
     try { seen = JSON.parse(lsGet('aa_seen') || '{}') || {}; } catch (e) { seen = {}; }
     function saveSeen() { lsSet('aa_seen', JSON.stringify(seen)); }
+    /* a notification is shown once per event, ever: the stamp of the last one shown is remembered on this device */
+    function notifyOnce(key, stamp) {
+        stamp = +stamp || 0;
+        if (!stamp || stamp <= (seen['n_' + key] || 0)) return false;
+        seen['n_' + key] = stamp; saveSeen(); return true;
+    }
 
     /* ================= calm sparkles ================= */
     (function () {
@@ -1450,7 +1456,7 @@
     function onInvite(key, w, d, first) {
         const prev = invites[key + '_' + w]; invites[key + '_' + w] = d;
         renderGame(key);
-        if (!first && d && me && w !== me && Store.mode === 'shared' && (!prev || prev.at !== d.at))
+        if (!first && d && me && w !== me && Store.mode === 'shared' && (!prev || prev.at !== d.at) && notifyOnce('i_' + key, d.at))
             toast(NAMES[w] + ' ' + VERB[w].call + ': ' + GAMES[key].title, 'Открыть', () => goGame(key));
         refreshBadges();
     }
@@ -1563,7 +1569,7 @@
         renderGame(key);
         if (!first && data && me && Store.mode === 'shared') {
             const open = () => goGame(key);
-            if (data.lastBy && data.lastBy !== me && (!prev || (prev.seq || 0) < (data.seq || 0))) {
+            if (data.lastBy && data.lastBy !== me && (!prev || (prev.seq || 0) < (data.seq || 0)) && notifyOnce('g_' + key, data.at || data.seq)) {
                 const msg = data.status === 'won' ? NAMES[data.winner] + (data.winner === 'a' ? ' выиграла' : ' выиграл') : data.status === 'draw' ? 'Ничья' : NAMES[data.lastBy] + ' ' + VERB[data.lastBy].moved;
                 toast(msg + ': ' + GAMES[key].title, 'Открыть', open);
             }
@@ -1687,9 +1693,10 @@
     const goSheet = () => $('#sheet').scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
     function onBoardSnap(w, data, first) {
         const prev = board[w]; board[w] = data; paintBoard(); renderSheetUI();
+        if (first && data && data.at) { const k = w === 'meta' ? 'bm' : 'b_' + w; if ((seen['n_' + k] || 0) < data.at) { seen['n_' + k] = data.at; saveSeen(); } }
         if (!first && data && me && Store.mode === 'shared') {
-            if (w === 'meta' && data.by && data.by !== me && (!prev || prev.sheet !== data.sheet)) toast(NAMES[data.by] + ' ' + fem(data.by, 'начала', 'начал') + ' новый лист. Рисунок в «Письмах»', 'Открыть', goSheet);
-            if (w !== 'meta' && w !== me && data.sheet === curSheet() && (!prev || (prev.at || 0) < (data.at || 0))) toast(NAMES[w] + ' ' + VERB[w].sent, 'Открыть', goSheet);
+            if (w === 'meta' && data.by && data.by !== me && (!prev || prev.sheet !== data.sheet) && notifyOnce('bm', data.at)) toast(NAMES[data.by] + ' ' + fem(data.by, 'начала', 'начал') + ' новый лист. Рисунок в «Письмах»', 'Открыть', goSheet);
+            if (w !== 'meta' && w !== me && data.sheet === curSheet() && (!prev || (prev.at || 0) < (data.at || 0)) && notifyOnce('b_' + w, data.at)) toast(NAMES[w] + ' ' + VERB[w].sent, 'Открыть', goSheet);
         }
         refreshBadges();
     }
@@ -1759,7 +1766,7 @@
         const prev = lettersList; lettersList = list; renderLetters();
         if (!first && me && Store.mode === 'shared') {
             const fresh = list.filter((l) => !prev.some((p) => p.id === l.id) && l.by && l.by !== me);
-            if (fresh.length) toast('Новое письмо в «Письма»', 'Открыть', () => $('#letters').scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' }));
+            if (fresh.length && notifyOnce('l', Math.max.apply(null, fresh.map((x) => x.at || 0)))) toast('Новое письмо в «Письма»', 'Открыть', () => $('#letters').scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' }));
         }
         refreshBadges();
     }
@@ -1803,7 +1810,7 @@
     });
     function onPulse(w, d, first) {
         const prev = pulse[w]; pulse[w] = d; renderPulse();
-        if (!first && d && me && w !== me && Store.mode === 'shared' && (!prev || prev.at !== d.at)) {
+        if (!first && d && me && w !== me && Store.mode === 'shared' && (!prev || prev.at !== d.at) && notifyOnce('p', d.at)) {
             toast(NAMES[w] + (w === 'a' ? ' думает' : ' думает') + ' о тебе');
             const b = $('#pulseBtn'); b.classList.remove('beat'); void b.offsetWidth; b.classList.add('beat');
         }
@@ -1878,7 +1885,7 @@
     });
     function onQa(w, d, first) {
         const prev = qa[w]; qa[w] = d; renderQd(); refreshBadges();
-        if (!first && d && me && w !== me && Store.mode === 'shared' && !prev) toast(NAMES[w] + (w === 'a' ? ' ответила' : ' ответил') + ' на вопрос дня', 'Открыть', () => goTo('question'));
+        if (!first && d && me && w !== me && Store.mode === 'shared' && !prev && notifyOnce('qa_' + QDAY, d.at)) toast(NAMES[w] + (w === 'a' ? ' ответила' : ' ответил') + ' на вопрос дня', 'Открыть', () => goTo('question'));
     }
 
     /* ================= open-when envelopes ================= */
@@ -1948,7 +1955,7 @@
         const prev = envList; envList = list; renderEnvs();
         if (!first && me && Store.mode === 'shared') {
             const fresh = list.filter((x) => x.to === me && !prev.some((p) => p.id === x.id));
-            if (fresh.length) toast('Новое письмо: «Открой, когда ' + fresh[0].when + '»', 'Открыть', () => goTo('envelopes'));
+            if (fresh.length && notifyOnce('e', Math.max.apply(null, fresh.map((x) => x.at || 0)))) toast('Новое письмо: «Открой, когда ' + fresh[0].when + '»', 'Открыть', () => goTo('envelopes'));
         }
         refreshBadges();
     }
