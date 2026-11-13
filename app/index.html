@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>my heart</title>
-<meta name="apple-mobile-web-app-title" content="my heart">
-<meta name="application-name" content="my heart">
+<title>my soul</title>
+<meta name="apple-mobile-web-app-title" content="my soul">
+<meta name="application-name" content="my soul">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -14,7 +14,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-<meta name="description" content="my heart">
+<meta name="description" content="my soul">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fira+Sans+Condensed:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Fira+Sans+Extra+Condensed:wght@300;400;500&family=Oranienbaum&family=Playfair+Display:ital,wght@1,400;1,500&display=swap" rel="stylesheet">
@@ -915,11 +915,11 @@
     const SITE_URL = MHC.siteUrl || location.href.split('#')[0];
     function push(text, tags) {
         if (!me) return;
-        const url = PUSH_BASE + other(me) + '?title=' + encodeURIComponent('my heart') + '&tags=' + encodeURIComponent(tags || 'heart') + '&click=' + encodeURIComponent(SITE_URL);
+        const url = PUSH_BASE + other(me) + '?title=' + encodeURIComponent('my soul') + '&tags=' + encodeURIComponent(tags || 'heart') + '&click=' + encodeURIComponent(SITE_URL);
         try {
             fetch(url, { method: 'POST', mode: 'no-cors', body: text }).catch(() => beacon());
         } catch (e) { beacon(); }
-        function beacon() { try { new Image().src = PUSH_BASE + other(me) + '/publish?message=' + encodeURIComponent(text) + '&title=my%20heart&tags=' + encodeURIComponent(tags || 'heart'); } catch (e) {} }
+        function beacon() { try { new Image().src = PUSH_BASE + other(me) + '/publish?message=' + encodeURIComponent(text) + '&title=my%20soul&tags=' + encodeURIComponent(tags || 'heart'); } catch (e) {} }
     }
     const fem = (w, f, m) => (w === 'a' ? f : m);
     const VERB = { a: { sent: 'отправила рисунок', moved: 'сделала ход', call: 'зовёт играть' }, r: { sent: 'отправил рисунок', moved: 'сделал ход', call: 'зовёт играть' } };

@@ -1,5 +1,5 @@
-// my heart — offline shell. Page and config: network first; media: cache first.
-const CACHE = 'my-heart-v1';
+// my soul — offline shell. Page and config: network first; media: cache first.
+const CACHE = 'my-soul-v2';
 const SHELL = ['./', 'index.html', 'config.js', 'manifest.webmanifest', 'photo.jpg', 'apple-touch-icon.png'];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });
